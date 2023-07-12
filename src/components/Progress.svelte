@@ -33,13 +33,16 @@
 	function syncDuration() {
 		if (mediaElement) duration = mediaElement.duration;
 	}
+
 	// TODO: don't run setInterval when music is paused.
 	onMount(() => {
 		if (!interval)
 			interval = setInterval(() => {
 				if (!mouseDown && mediaElement) progress = mediaElement.currentTime;
 			}, 20);
-		if (mediaElement) mediaElement.addEventListener('durationchange', syncDuration);
+		if (mediaElement) {
+			mediaElement.addEventListener('durationchange', syncDuration);
+		}
 	});
 	function handleMouseDown(e: MouseEvent) {
 		if (mediaElement) {
@@ -50,6 +53,7 @@
 			fromLeft = e.pageX - e.offsetX;
 			progress = (e.offsetX / barWidth) * mediaElement.duration;
 			document.addEventListener('mousemove', handleMouseMove);
+			document.addEventListener('mouseup', handleMouseUp);
 		}
 	}
 	function handleMouseMove(e: MouseEvent) {
@@ -64,12 +68,13 @@
 
 				progress = progressUpdate;
 			}
-			if (e.buttons !== 1) {
-				mouseDown = false;
-				if (mediaElement) mediaElement.currentTime = progress;
-				document.removeEventListener('mousemove', handleMouseMove);
-			}
 		}
+	}
+	function handleMouseUp() {
+		mouseDown = false;
+		if (mediaElement) mediaElement.currentTime = progress;
+		document.removeEventListener('mousemove', handleMouseMove);
+		document.removeEventListener('mouseup', handleMouseUp);
 	}
 	onDestroy(() => {
 		if (typeof document !== 'undefined') document.removeEventListener('mousemove', handleMouseMove);

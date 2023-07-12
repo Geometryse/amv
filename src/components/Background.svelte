@@ -3,7 +3,7 @@
 </script>
 
 <div
-	class="absolute w-full h-full inset-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center -z-10 overflow-hidden select-none"
+	class="absolute w-full h-full flex items-center justify-center -z-10 overflow-hidden select-none"
 >
 	{#if src}
 		<img
