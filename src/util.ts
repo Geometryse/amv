@@ -30,3 +30,16 @@ export const formatTime = (seconds: number): string => {
 	const secs = flooredSeconds % 60;
 	return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
+export function getMaxInRange(
+	dataArray: Uint8Array,
+	lowerIndex: number,
+	upperIndex: number
+): number {
+	let maxValue = 0;
+	for (let i = lowerIndex; i <= upperIndex; i++) {
+		if (dataArray[i] > maxValue) {
+			maxValue = dataArray[i];
+		}
+	}
+	return maxValue;
+}

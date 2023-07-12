@@ -7,7 +7,7 @@
 	let progress = 0;
 	let fileSrc: string;
 	// TODO: Do we need this variable?
-	$: duration = mediaElement?.duration || 0.1;
+	let duration = 1;
 	let barWidth: number;
 	let fromLeft: number;
 	let interval: NodeJS.Timer;
@@ -18,31 +18,39 @@
 	function updateStrings() {
 		if (mediaElement) {
 			const flooredProgress = Math.floor(progress);
-			const roundedRemaining = Math.floor(Math.ceil(duration) - progress);
+			const roundedRemaining = Math.floor(Math.ceil(mediaElement.duration) - progress);
 			progressString = formatTime(flooredProgress);
 			remainingString = '-' + formatTime(roundedRemaining);
 		}
 	}
 	$: progress || fileSrc, updateStrings();
 	// TODO: This is the same code used in Visualizer.svelte, and it involves a duplicate variable, fileSrc.
-	$: if (mediaElement && mediaElement.src !== fileSrc) {
+
+	$: if (mediaElement && mediaElement.src !== fileSrc && mediaElement.readyState === 4) {
 		fileSrc = mediaElement.src;
 		progress = 0;
 	}
-	$: mediaElement, syncDuration();
+
+	$: if (mediaElement && mediaElement.src) {
+		mediaElement.addEventListener('loadeddata', initialize);
+	}
 	function syncDuration() {
 		if (mediaElement) duration = mediaElement.duration;
 	}
-
+	function initialize() {
+		if (mediaElement) {
+			mediaElement.removeEventListener('durationchange', syncDuration);
+			mediaElement.addEventListener('durationchange', syncDuration);
+			syncDuration();
+			updateStrings();
+		}
+	}
 	// TODO: don't run setInterval when music is paused.
 	onMount(() => {
 		if (!interval)
 			interval = setInterval(() => {
 				if (!mouseDown && mediaElement) progress = mediaElement.currentTime;
 			}, 20);
-		if (mediaElement) {
-			mediaElement.addEventListener('durationchange', syncDuration);
-		}
 	});
 	function handleMouseDown(e: MouseEvent) {
 		if (mediaElement) {
@@ -77,19 +85,20 @@
 		document.removeEventListener('mouseup', handleMouseUp);
 	}
 	onDestroy(() => {
-		if (typeof document !== 'undefined') document.removeEventListener('mousemove', handleMouseMove);
-		if (mediaElement) mediaElement.removeEventListener('durationchange', syncDuration);
+		if (typeof document !== 'undefined') {
+			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('mouseup', handleMouseUp);
+		}
+		if (mediaElement) {
+			mediaElement.removeEventListener('durationchange', syncDuration);
+			mediaElement.removeEventListener('loadeddata', initialize);
+		}
 	});
 </script>
 
 <div class="w-full h-9">
 	<div class="w-full" bind:clientWidth={barWidth}>
-		<Bar
-			to={mediaElement?.duration || 1}
-			current={progress}
-			on:mousedown={handleMouseDown}
-			active={!!mediaElement}
-		/>
+		<Bar to={duration} current={progress} on:mousedown={handleMouseDown} active={!!mediaElement} />
 	</div>
 	<div class="flex justify-between text-white/50 text-sm cursor-default">
 		<p>{progressString}</p>

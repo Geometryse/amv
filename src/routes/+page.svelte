@@ -2,13 +2,9 @@
 	import { onDestroy, onMount } from 'svelte';
 	import Buttons from '../components/Buttons.svelte';
 	import Visualizer from '../components/Visualizer/Visualizer-DOM.svelte';
-	import AudioPlayer from '../components/Visualizer/AudioPlayer.svelte';
 	import { invMel, rapScale } from '../util';
-	import { buttons } from '../constants';
 	import Details from '../components/Details/Details.svelte';
-	import Button from '../components/buttons/Button.svelte';
 	import Progress from '../components/Progress.svelte';
-	import Lyrics from '../components/Lyrics/Lyrics.svelte';
 	import Sound from '../components/Sound.svelte';
 	import Cover from '../components/Cover.svelte';
 	import Background from '../components/Background.svelte';
@@ -16,7 +12,9 @@
 	let demo = true;
 
 	let mediaElement: HTMLMediaElement;
-
+	onMount(() => {
+		// mediaElement = new Audio('demo-song.mp3');
+	});
 	let scalingExponent = 4;
 	let split = 100;
 	let maxMel = 3317;
@@ -62,19 +60,17 @@
 		};
 	}
 
-	onMount(() => {
-		// TODO: I shouldn't have to do this...
-		let newMediaElement: HTMLMediaElement = new Audio('/demo-song.mp3');
-		newMediaElement.oncanplay = async () => {
-			mediaElement = newMediaElement;
-		};
-	});
-	let hideUI = false;
+	// onMount(() => {
+	// 	// TODO: I shouldn't have to do this...
+	// 	setTimeout(() => {
+	// 		let newMediaElement: HTMLMediaElement = new Audio('/demo-song.mp3');
+	// 		newMediaElement.oncanplay = async () => {
+	// 			mediaElement = newMediaElement;
+	// 			console.log('media el loaded up!');
+	// 		};
+	// 	}, 1000);
+	// });
 
-	function handleHideUI() {
-		hideUI = !hideUI;
-	}
-	$: mediaElement, (hideUI = !!mediaElement);
 	function toggle() {
 		if (mediaElement) {
 			if (mediaElement.paused) {
@@ -82,6 +78,9 @@
 			} else {
 				mediaElement.pause();
 			}
+		} else {
+			mediaElement = new Audio('demo-song.mp3');
+			mediaElement.play();
 		}
 	}
 </script>
@@ -116,9 +115,9 @@
 			</div>
 		</div>
 		<div class="xl:w-[452px]">
-			<Progress {mediaElement} />
-			<Buttons {mediaElement} on:toggle={toggle} />
-			<Sound {mediaElement} />
+			<Progress bind:mediaElement />
+			<Buttons bind:mediaElement on:toggle={toggle} />
+			<Sound bind:mediaElement />
 		</div>
 	</div>
 	<!-- Lyrics & Vis -->

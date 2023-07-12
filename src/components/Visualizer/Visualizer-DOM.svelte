@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
+	import { getMaxInRange } from '../../util';
 	export let mediaElement: HTMLMediaElement;
 	export let upperBounds: number[];
 	export let scalingExponent: number;
@@ -18,9 +19,10 @@
 	let interval: NodeJS.Timer;
 	$: visible = !!mediaElement;
 	$: barCount = upperBounds.length - 1;
-	const refreshRate = 50;
+	const refreshRate = 30;
 	let prevHeights: number[] = [];
 	let lastUpdateTime = performance.now();
+
 	const blendHeight = (blendFactor: number) => {
 		// A number from 0-1 that determines how much to favor current heights over previous heights
 
@@ -44,19 +46,18 @@
 			const upperIndex = Math.floor(
 				(upperFreq / (audioContext.sampleRate / 2)) * analyser.frequencyBinCount
 			);
-
-			const allBins = dataArray
-				.filter((_, i) => i >= lowerIndex && i <= upperIndex)
-				.sort((a, b) => b - a);
-			const topBin = allBins[0];
+			// console.log(dataArray.filter((_, i) => i >= lowerIndex && i <= upperIndex).length);
+			// const allBins = dataArray.filter((_, i) => i >= lowerIndex && i <= upperIndex);
+			// .sort((a, b) => b - a);
+			const topBin = getMaxInRange(dataArray, lowerIndex, upperIndex);
 			// const countedBins = topBin.length;
 			// const totalPower = topBin.reduce((a, b) => a + b, 0);
 			// If averagePower resolves to NaN, set to 0
-			const averagePower = topBin;
+			// const averagePower = topBin;
 			//  || 0;
 
 			// Convert the linear amplitude value to decibels.
-			const dBValue = 20 * Math.log10(Math.max(averagePower, 1) / 255);
+			const dBValue = 20 * Math.log10(Math.max(topBin, 1) / 255);
 
 			// Convert the dB value back to a linear amplitude value. This will create a perceived
 			// volume effect where a larger change is needed at higher volumes to achieve the same
@@ -130,9 +131,7 @@
 	>
 		{#each heights as dot, i (i)}
 			<div
-				class="{dot < 12
-					? 'bg-gray-400/50'
-					: 'bg-white/90'} transition-all ease-linear w-2 min-h-[8px] rounded-full dot"
+				class="{dot < 12 ? 'bg-gray-400/50' : 'bg-white/90'} w-2 min-h-[8px] rounded-full dot"
 				style="height: {dot}px"
 			/>
 		{/each}

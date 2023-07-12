@@ -1,23 +1,20 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { onDestroy, createEventDispatcher } from 'svelte';
 	import Button from './buttons/Button.svelte';
 	export let mediaElement: HTMLMediaElement | undefined;
 	let playing = false;
 	let listening = false;
 	let currentSrc = '';
-
+	const dispatch = createEventDispatcher();
 	$: if (mediaElement && mediaElement.src !== currentSrc) {
-		console.log('new instance');
+		currentSrc = mediaElement.src;
 		listening = true;
 		removeListeners();
 		addListeners();
 	}
 
 	const updatePlay = () => {
-		if (mediaElement) {
-			if (mediaElement.paused) mediaElement.play();
-			else mediaElement.pause();
-		}
+		dispatch('toggle');
 	};
 	function removeListeners() {
 		if (mediaElement) {
