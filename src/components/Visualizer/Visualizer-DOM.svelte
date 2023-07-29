@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
-	import { getMaxInRange } from '../../util';
+	import { getMaxInRange, isEmpty } from '../../util';
 	export let mediaElement: HTMLMediaElement;
+	import data from '../../example-data.json';
 	export let upperBounds: number[];
 	export let scalingExponent: number;
 
@@ -15,25 +16,25 @@
 	let fileSrc: string;
 	// Each dot's height ranges from [0, 320]
 	const heights: number[] = new Array(100).fill(0);
-	const futureHeights: number[] = [];
+	// const futureHeights: number[] = [];
 	let interval: NodeJS.Timer;
 	$: visible = !!mediaElement;
 	$: barCount = upperBounds.length - 1;
 	const refreshRate = 30;
-	let prevHeights: number[] = [];
-	let lastUpdateTime = performance.now();
+	// let prevHeights: number[] = [];
+	const masterArray: number[][] = [];
+	let loop = 0;
 
-	const blendHeight = (blendFactor: number) => {
-		// A number from 0-1 that determines how much to favor current heights over previous heights
+	// const blendHeight = (blendFactor: number) => {
+	// 	// A number from 0-1 that determines how much to favor current heights over previous heights
 
-		for (let i = 0; i < barCount; i++) {
-			heights[i] = futureHeights[i] * blendFactor + prevHeights[i] * (1 - blendFactor);
-		}
-	};
+	// 	for (let i = 0; i < barCount; i++) {
+	// 		heights[i] = futureHeights[i] * blendFactor + prevHeights[i] * (1 - blendFactor);
+	// 	}
+	// };
 	const calcHeights = () => {
-		if (!analyser) return;
-		analyser.getByteFrequencyData(dataArray);
-
+		// if (!analyser) return;
+		// analyser.getByteFrequencyData(dataArray);
 		for (let i = 0; i < barCount; i++) {
 			// upperBounds is an array containing upper frequency bounds for each bar.
 			const lowerFreq = upperBounds[i];
@@ -50,6 +51,7 @@
 			// const allBins = dataArray.filter((_, i) => i >= lowerIndex && i <= upperIndex);
 			// .sort((a, b) => b - a);
 			const topBin = getMaxInRange(dataArray, lowerIndex, upperIndex);
+			masterArray[loop][i] = topBin;
 			// const countedBins = topBin.length;
 			// const totalPower = topBin.reduce((a, b) => a + b, 0);
 			// If averagePower resolves to NaN, set to 0
@@ -71,26 +73,32 @@
 			const barHeight = scaledLoudness * 320;
 			heights[i] = barHeight;
 		}
+		if (isEmpty(masterArray[loop])) {
+			masterArray[loop] = [];
+		} else {
+			loop += 1;
+		}
+		console.log(masterArray);
 	};
 
 	let audioContextCreated = false;
 	$: if (visible) {
-		if (!analyser) {
-			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-			analyser = audioContext.createAnalyser();
-			analyser.fftSize = 1024 * 2;
+		// if (!analyser) {
+		// 	audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+		// 	analyser = audioContext.createAnalyser();
+		// 	analyser.fftSize = 1024 * 2;
 
-			audioContextCreated = true;
-			// // Create a MediaElementAudioSourceNode from the provided mediaElement
-			// source = audioContext.createMediaElementSource(mediaElement);
+		// 	audioContextCreated = true;
+		// 	// // Create a MediaElementAudioSourceNode from the provided mediaElement
+		// 	// source = audioContext.createMediaElementSource(mediaElement);
 
-			// // Connect the source to the analyser
-			// source.connect(analyser);
-			// analyser.connect(audioContext.destination);
+		// 	// // Connect the source to the analyser
+		// 	// source.connect(analyser);
+		// 	// analyser.connect(audioContext.destination);
 
-			bufferLength = analyser.frequencyBinCount;
-			dataArray = new Uint8Array(bufferLength);
-		}
+		// 	bufferLength = analyser.frequencyBinCount;
+		// 	dataArray = new Uint8Array(bufferLength);
+		// }
 		if (animationId) {
 			cancelAnimationFrame(animationId);
 		}
@@ -123,7 +131,7 @@
 	});
 </script>
 
-{#if visible}
+{#if false}
 	<div
 		class="w-full mr-20 max-w-7xl h-80 flex items-center justify-center gap-[3px]"
 		transition:fade
