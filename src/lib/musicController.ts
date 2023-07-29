@@ -10,6 +10,7 @@
 // interface ActiveSong extends Song {
 // 	playing: boolean;
 // }
+// type Config = unknown
 
 // const mockData: MusicInterface = {
 // 	active: {
@@ -28,3 +29,11 @@
 // 	// eslint-disable-next-line no-self-assign
 // 	musicInterface = musicInterface;
 // };
+
+// export const initialize = (config: Music.Config): Music.App => {
+// 	throw new Error('Function not implemented yet.');
+// };
+// export const getMusic = () => {
+// 	throw new Error('Function not implemented yet.');
+// };
+// export const;

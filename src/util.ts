@@ -21,6 +21,13 @@ export function fillRoundRect(
 	ctx.closePath();
 	ctx.fill();
 }
+export function pseudoMelToHz(pseudoMel: number, midShift: number): number {
+	// This exponent value controls the balance between linear and logarithmic scaling
+	const exponent = 0.6;
+	// Mid-shift adjustment
+	const adjustedMel = pseudoMel + midShift * pseudoMel;
+	return 700 * (Math.pow(10, Math.pow(adjustedMel / 2595, exponent)) - 1);
+}
 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -42,4 +49,39 @@ export function getMaxInRange(
 		}
 	}
 	return maxValue;
+}
+
+export function sumTopXInRange(
+	dataArray: Uint8Array,
+	lowerIndex: number,
+	upperIndex: number,
+	x: number
+): number {
+	const topValues = Array(x).fill(0);
+
+	for (let i = lowerIndex; i <= upperIndex; i++) {
+		// If the current value is larger than the smallest of the top three values...
+		if (dataArray[i] > topValues[0]) {
+			// Replace the smallest value and sort the array.
+			topValues[0] = dataArray[i];
+			topValues.sort((a, b) => a - b);
+		}
+	}
+
+	// Sum up the top three values.
+	const sum = topValues.reduce((a, b) => a + b, 0);
+
+	return sum / topValues.length;
+}
+
+export function isEmpty(arr: unknown[]) {
+	for (let i = 0; i < arr.length; i++) {
+		if (arr[i]) return false;
+	}
+	return true;
+}
+export function scaleExponentially(value: number, power: number): number {
+	const normalizedValue = value / 255;
+	const rescaledValue = Math.pow(normalizedValue, power) * 255;
+	return rescaledValue;
 }

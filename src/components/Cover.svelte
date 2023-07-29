@@ -1,8 +1,21 @@
 <script lang="ts">
 	export let src: string | null | undefined;
+	export let video: string | undefined;
 </script>
 
-{#if src}
+{#if src && video}
+	<div class="">
+		<video loop autoplay muted src={video} class="h-full w-auto rounded-xl drop-shadow-2xl" />
+	</div>
+	<!-- <video
+		loop
+		autoplay
+		muted
+		{src}
+		class=" absolute h-full w-auto rounded-xl drop-shadow-2xl"
+		id="flippedVideo"
+	/> -->
+{:else if src}
 	<img {src} alt="" class="w-auto h-full rounded-xl drop-shadow-2xl" />
 {:else}
 	<div class="w-full aspect-square flex items-center justify-center">
@@ -19,3 +32,11 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	#flippedVideo {
+		transform: rotateX(180deg);
+		-webkit-transform: rotateX(180deg); /* Safari and Chrome */
+		-moz-transform: rotateX(180deg); /* Firefox */
+	}
+</style>

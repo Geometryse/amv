@@ -31,14 +31,18 @@
 		progress = 0;
 	}
 
-	$: if (mediaElement && mediaElement.src) {
+	$: if (mediaElement) {
+		console.log('waiting to load');
+		initialize();
 		mediaElement.addEventListener('loadeddata', initialize);
 	}
+
 	function syncDuration() {
 		if (mediaElement) duration = mediaElement.duration;
 	}
 	function initialize() {
 		if (mediaElement) {
+			console.log('init');
 			mediaElement.removeEventListener('durationchange', syncDuration);
 			mediaElement.addEventListener('durationchange', syncDuration);
 			syncDuration();

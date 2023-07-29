@@ -1,62 +1,55 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import Buttons from '../components/Buttons.svelte';
 	import Visualizer from '../components/Visualizer/Visualizer-DOM.svelte';
-	import { invMel, rapScale } from '../util';
 	import Details from '../components/Details/Details.svelte';
 	import Progress from '../components/Progress.svelte';
 	import Sound from '../components/Sound.svelte';
 	import Cover from '../components/Cover.svelte';
 	import Background from '../components/Background.svelte';
 	import { fade } from 'svelte/transition';
+	import AudioPlayer from '../components/Visualizer/AudioPlayer.svelte';
 	let demo = true;
 
 	let mediaElement: HTMLMediaElement;
 	onMount(() => {
 		// mediaElement = new Audio('demo-song.mp3');
 	});
-	let scalingExponent = 4;
-	let split = 100;
-	let maxMel = 3317;
-	// maxFreq = 12583;
-	let usingMel = false;
-	$: melInterval = maxMel / split;
-	let upperBounds: number[] = [];
-	$: usingMel, calculateBounds();
-	const calculateBounds = () => {
-		const newBounds = [0];
-		for (let i = 1; i <= split; i++) {
-			let freq: number;
-			if (usingMel) {
-				const mel = melInterval * i;
-				freq = invMel(mel);
-			} else freq = rapScale(i);
-			newBounds.push(Math.floor(freq));
-		}
-		upperBounds = newBounds;
-	};
+	// magical three:
+	let sumTotal = 1;
+	let scalingExponent = 3;
+
+	let upperBounds: number[] = Array.from(
+		{ length: 52 },
+		(_, i) => 700 * (Math.pow(10, i / 51) - 1)
+	);
 
 	let metadata: App.Metadata | null =
 		// null;
 		{
-			title: 'Ontheway!',
-			artist: 'Earl Sweatshirt',
-			album: '',
+			title: 'SKITZO',
+			artist: 'Travis Scott',
+			album: 'UTOPIA',
 			explicit: true,
 			// cover: null
 			cover:
-				'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e7/49/8f/e7498f65-df8f-bead-d6e3-2a8d4d642a79/886447235317.jpg/1200x1200bb.jpg'
+				'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/09/7d/b0/097db06f-8403-3cf7-7510-139e570ca66b/196871341882.jpg/1200x1200bb.jpg'
 		};
+	// UTOPIA: https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/09/7d/b0/097db06f-8403-3cf7-7510-139e570ca66b/196871341882.jpg/1200x1200bb.jpg
+	// ASTROWORLD: https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e7/49/8f/e7498f65-df8f-bead-d6e3-2a8d4d642a79/886447235317.jpg/1200x1200bb.jpg
+	// UN VERANO SIN TI: https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/3e/04/eb/3e04ebf6-370f-f59d-ec84-2c2643db92f1/196626945068.jpg/1200x1200bb.jpg
+	// FUTURE HNDRXX: https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/d7/20/e2/d720e257-a6e7-fec1-4546-b83f73dc071f/886447486191.jpg/1200x1200bf-60.jpg
 
 	if (demo) {
 		metadata = {
-			title: 'Frank Lucas (feat. Benny the Butcher)',
-			artist: 'Freddie Gibbs & The Alchemist',
-			album: '',
+			title: 'MELTDOWN',
+			artist: 'Travis Scott',
+			album: 'UTOPIA',
 			explicit: true,
-			// cover: null
 			cover:
-				'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/11/f5/72/11f572ef-f422-92b5-1a7e-b6cd882ddf85/194690217357_cover.jpg/1200x1200bf-60.jpg'
+				'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/09/7d/b0/097db06f-8403-3cf7-7510-139e570ca66b/196871341882.jpg/1200x1200bb.jpg',
+			video:
+				'https://mvod.itunes.apple.com/itunes-assets/HLSMusic126/v4/b5/14/91/b5149103-467c-996b-cf7e-2a7b18458169/P606895970_Anull_video_gr290_sdr_1080x1080-.mp4'
 		};
 	}
 
@@ -78,8 +71,8 @@
 			} else {
 				mediaElement.pause();
 			}
-		} else {
-			mediaElement = new Audio('demo-song.mp3');
+		} else if (demo) {
+			mediaElement = new Audio('demo-song.flac');
 			mediaElement.play();
 		}
 	}
@@ -92,8 +85,8 @@
 	<div
 		class="xl:w-[630px] w-[400px] flex items-center justify-center px-20 flex-col gap-6 overflow-hidden my-6"
 	>
-		<div class="rounded-lg my-7 w-full">
-			<Cover src={metadata?.cover} />
+		<div class="rounded-lg my-7 w-full relative">
+			<Cover src={metadata?.cover} video={metadata?.video} />
 		</div>
 		<div class="w-[600px] flex justify-center items-center">
 			<Details active={metadata} />
@@ -121,16 +114,22 @@
 		</div>
 	</div>
 	<!-- Lyrics & Vis -->
-	<div class="h-full flex flex-col justify-center items-center font-bold flex-1">
+	<div class="h-full flex flex-col justify-center items-center font-bold flex-1 text-white">
 		<!-- <Lyrics /> -->
-		<Visualizer {mediaElement} bind:upperBounds {scalingExponent} />
+		<Visualizer {mediaElement} bind:upperBounds {scalingExponent} {sumTotal} />
+		<!-- <input type="range" min="-1" max="1" step=".1" bind:value={midShift} />
+		Mid Shift: {midShift} -->
+		<!-- <input type="range" min="1" max="4" step="1" bind:value={sumTotal} />
+		Sum Total: {sumTotal}
+		<input type="range" min="1" max="4" step=".25" bind:value={scalingExponent} />
+		Scaling Exponent: {scalingExponent} -->
 	</div>
-	<!-- <div class="absolute top-0 left-0">
+	<div class="absolute top-0 left-0">
 		<AudioPlayer
+			{demo}
 			on:audioReady={(e) => {
 				mediaElement = e.detail.mediaElement;
 			}}
-			on:click={handleHideUI}
 		/>
-	</div> -->
+	</div>
 </div>

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
+	export let demo: boolean;
+
 	const dispatch = createEventDispatcher();
 
 	let mediaElement: HTMLMediaElement;
@@ -48,7 +50,7 @@
 	}
 </script>
 
-{#if !hide}
+{#if !hide && !demo}
 	<input
 		type="file"
 		multiple
