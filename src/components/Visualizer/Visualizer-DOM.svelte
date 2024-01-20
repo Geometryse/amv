@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
-	import { getMaxInRange, isEmpty, scaleExponentially, sumTopXInRange } from '../../util';
+	import { scaleExponentially, sumTopXInRange } from '../../util';
 	export let mediaElement: HTMLMediaElement;
-	import data from '../../example-data.json';
 	export let upperBounds: number[];
 	export let scalingExponent: number;
 	export let sumTotal: number;
@@ -21,15 +20,9 @@
 	$: barCount = upperBounds.length - 1;
 	let heights: number[] = new Array(barCount).fill(0);
 	const refreshRate = 100;
-	// let prevHeights: number[] = [];
-	let loop = 0;
-	// const blendHeight = (blendFactor: number) => {
-	// 	// A number from 0-1 that determines how much to favor current heights over previous heights
 
-	// 	for (let i = 0; i < barCount; i++) {
-	// 		heights[i] = futureHeights[i] * blendFactor + prevHeights[i] * (1 - blendFactor);
-	// 	}
-	// };
+	let loop = 0;
+
 	const calcHeights = () => {
 		if (!analyser) return;
 		analyser.getByteFrequencyData(dataArray);
@@ -49,27 +42,8 @@
 
 			const topBinAvg = sumTopXInRange(dataArray, lowerIndex, upperIndex, sumTotal);
 			const scaledBin = scaleExponentially(topBinAvg, scalingExponent);
-			// let barHeight: number;
-			// // GRAPH: https://www.desmos.com/calculator/3uuefxf1b2
-			// if (topBin < 100) barHeight = topBin * (2 / 5);
-			// else if (topBin < 160) barHeight = 2.18665662563 * topBin - 170.268376423;
-			// else barHeight = -127.5 * Math.cos((Math.PI / 255) * topBin) + 126.5;
 
-			// if (i > 0) {
-			// 	const prev = heights[heights.length - 1];
-			// 	const favorLast = prev / barHeight;
-			// 	let inBetween: number;
-			// 	if (favorLast > 1) {
-			// 		inBetween = prev * 0.6 + barHeight * 0.4;
-			// 	} else if (favorLast < 1) {
-			// 		inBetween = prev * 0.4 + barHeight * 0.6;
-			// 	} else {
-			// 		inBetween = prev * 0.5 + barHeight * 0.5;
-			// 	}
-			// 	heights.push(inBetween);
-			// }
 			heights.push(scaledBin);
-			// heights[i] = barHeight;
 		}
 	};
 
@@ -81,12 +55,6 @@
 			analyser.fftSize = 1024 * 4;
 
 			audioContextCreated = true;
-			// // Create a MediaElementAudioSourceNode from the provided mediaElement
-			// source = audioContext.createMediaElementSource(mediaElement);
-
-			// // Connect the source to the analyser
-			// source.connect(analyser);
-			// analyser.connect(audioContext.destination);
 
 			bufferLength = analyser.frequencyBinCount;
 			dataArray = new Uint8Array(bufferLength);
@@ -95,13 +63,11 @@
 			cancelAnimationFrame(animationId);
 		}
 		interval = setInterval(calcHeights, 1000 / refreshRate);
-		// calcHeights();
 	}
 
 	$: if (mediaElement) {
 		if (mediaElement.src !== fileSrc) {
 			fileSrc = mediaElement.src;
-			// mediaElement.addEventListener('ended', hide);
 			if (source) source.disconnect();
 
 			source = audioContext.createMediaElementSource(mediaElement);
@@ -110,10 +76,6 @@
 		}
 	}
 	onDestroy(() => {
-		// if (mediaElement) mediaElement.removeEventListener('ended', hide);
-		// if (animationId) {
-		// 	cancelAnimationFrame(animationId);
-		// }
 		if (source) {
 			source.disconnect();
 		}
@@ -126,9 +88,6 @@
 </script>
 
 {#if visible}
-	<!-- <p>
-		fft: {analyser.fftSize}
-	</p> -->
 	<div
 		class="w-full mr-20 max-w-7xl h-80 flex items-center justify-center gap-[3px]"
 		transition:fade
